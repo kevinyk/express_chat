@@ -1,0 +1,46 @@
+<html>
+<head>
+<title></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type ="text/javascript">
+        $(document).ready(function (){
+            var name = prompt("Please enter your name: ");
+            if (name.trim() == ""){
+                $('#chatform').remove();
+                alert("You cannot send messages without using a name. Please reconnect and try again.")
+            }
+            var socket = io.connect();
+            socket.emit("user_joined", {name: name});
+            $('#chatform').submit(function(){
+                var message = $('#chatMessage').val();
+                socket.emit("message_sent", 
+                    {
+                        message: message,
+                        name: name
+                    });
+                $('#chatMessage').val('');
+                return false;
+                
+            })
+            $(window).unload(function(){
+                socket.emit("user_left", {name: name});
+            })
+            socket.on('server_response', function (data){
+                $('#chatbox').append("<p>"+ data.response + "</p>");
+            });
+        })
+    </script>
+</head>
+<body>
+    <div id = 'chatbox'>
+        <p>Welcome to the chatroom!</p>
+    </div>
+    <h4>Enter a new message</h4>
+    <form id = 'chatform'>
+        <input type="text" name="message" id = 'chatMessage'>
+        <input type="submit">
+    </form>
+</body>
+</html>
